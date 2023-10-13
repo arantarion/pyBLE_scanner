@@ -16,8 +16,6 @@ BLE_PERMISSIONS = ["WRITE NO RESPONSE", "SIGNED WRITE COMMAND", "QUEUED WRITE", 
                    "INDICATE", "WRITABLE AUXILIARIES"]
 connection_error = False
 
-logger = logging.getLogger(__name__)
-
 
 class BLEDescriptor:
     """
@@ -357,7 +355,7 @@ class NotificationDelegate(DefaultDelegate):
         :param data: Data received in the notification.
         :type data: bytes
         """
-        logger.info((f"[*] Notification from handle {cHandle:04x}:"
+        logging.info((f"[*] Notification from handle {cHandle:04x}:"
                      f"\n    {data.hex()}"))
 
 
@@ -420,13 +418,13 @@ class BLEScanner:
         :param duration: Duration of the scan in seconds.
         :type duration: int
         """
-        logger.info(f"[*] scanning for {duration} seconds")
+        logging.info(f"[*] scanning for {duration} seconds")
         print("")
         print(f"{'Device':<20} {'Name':<30} {'Address Type':<15} {'Connectable':<15} {'RSSI (dB)':<10}")
         print('-' * 100)
         devices = self.scanner.scan(timeout=duration)
         print("")
-        logger.info(f"[*] found {len(devices)} BLE devices - "
+        logging.info(f"[*] found {len(devices)} BLE devices - "
                     f"{len([dev for dev in devices if dev.connectable])} connectable")
         for device in devices:
             scanned_device = BLEDevice(address=device.addr,
@@ -464,17 +462,17 @@ class BLEScanner:
             thread.start()
             thread.join(CONNECTION_TIMOUT)
             if thread.is_alive() or connection_error:
-                logger.error(f"[-] The device did not respond in the connection timeout of {CONNECTION_TIMOUT}")
+                logging.error(f"[-] The device did not respond in the connection timeout of {CONNECTION_TIMOUT}")
                 raise Exception()
-            logger.info(f"[*] Connected to {addr}.")
+            logging.info(f"[*] Connected to {addr}.")
 
-            logger.info(f"[*] reading services of '{addr}'")
+            logging.info(f"[*] reading services of '{addr}'")
             services = p.getServices()
             for serv in services:
                 service = BLEService(uuid=serv.uuid)
                 device.add_service(service=service)
 
-                logger.info(f"[*] reading characteristics of service '{service.name}' on device '{addr}'")
+                logging.info(f"[*] reading characteristics of service '{service.name}' on device '{addr}'")
                 characteristics = serv.getCharacteristics()
                 for chara in characteristics:
                     char_value = chara.read() if chara.supportsRead() else None
@@ -488,24 +486,24 @@ class BLEScanner:
                     service.add_characteristic(characteristic=characteristic)
 
                     if with_descriptors:
-                        logger.info(f"[*] reading descriptors of characteristic '{characteristic.name}' of service "
+                        logging.info(f"[*] reading descriptors of characteristic '{characteristic.name}' of service "
                                     f"'{service.name}' on device '{addr}'")
                         for desc in chara.getDescriptors():
                             descriptor = BLEDescriptor(uuid=desc.uuid,
                                                        handle=desc.handle)
                             characteristic.add_descriptor(descriptor=descriptor)
 
-            logger.info(f"[*] successfully read all data from device {addr}")
+            logging.info(f"[*] successfully read all data from device {addr}")
             self.successful_scans += 1
             p.disconnect()
-            logger.info(f"[*] disconnected from '{addr}'\n")
+            logging.info(f"[*] disconnected from '{addr}'\n")
 
         except KeyboardInterrupt:
-            logger.error(f"[-] KeyboardInterrupt - Skipping this device")
+            logging.error(f"[-] KeyboardInterrupt - Skipping this device")
 
         except Exception as e:
-            logger.error(f"[-] connect_and_read_all: Error {e}")
-            logger.error(f"[-] disconnecting...")
+            logging.error(f"[-] connect_and_read_all: Error {e}")
+            logging.error(f"[-] disconnecting...")
             p.disconnect()
 
     def save_to_json(self, filename: str) -> None:
@@ -515,11 +513,11 @@ class BLEScanner:
         :param filename: Name of the file to save the data to.
         :type filename: str
         """
-        logger.info(f"[*] Writing to file {filename}")
+        logging.info(f"[*] Writing to file {filename}")
         data = {address: device.to_dict() for address, device in self.scanned_devices.items()}
         with open(filename, 'w') as f:
             json.dump(data, f, indent=4)
-        logger.info(f"[*] File created successfully")
+        logging.info(f"[*] File created successfully")
 
 
 # ---------------------------------------------------------------------------------------------------------------------#
@@ -540,17 +538,17 @@ def scan_all_devices_and_read_all_fields(filename: str, with_descriptors: bool =
     """
     # ----------------- SCANNING ALL DEVICES ----------------- #
 
-    logger.info("[*] Starting Script. Initializing Scanner Object")
+    logging.info("[*] Starting Script. Initializing Scanner Object")
     scanner1 = BLEScanner()
     try:
         scanner1.scan(duration=BT_SCAN_TIME)
     except BTLEDisconnectError:
         try:
-            logger.info("[*] First scanning attempt failed. Trying again after 0.2 seconds...")
+            logging.info("[*] First scanning attempt failed. Trying again after 0.2 seconds...")
             sleep(0.2)
             scanner1.scan(duration=BT_SCAN_TIME)
         except Exception:
-            logger.error(f"[-] An error occurred while scanning devices")
+            logging.error(f"[-] An error occurred while scanning devices")
             pass
 
     # ---------------- READING ALL ATTRIBUTES ---------------- #
@@ -558,7 +556,7 @@ def scan_all_devices_and_read_all_fields(filename: str, with_descriptors: bool =
     for address, device in scanner1.scanned_devices.items():
         if device.connectable:
             try:
-                logger.info(f"[*] Connecting to {device.address} ({device.name})...")
+                logging.info(f"[*] Connecting to {device.address} ({device.name})...")
                 scanner1.connect_and_read_all(addr=address,
                                               addr_type=device.addr_type,
                                               with_descriptors=with_descriptors)
