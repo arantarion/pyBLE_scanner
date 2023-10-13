@@ -29,6 +29,7 @@ class BLEDescriptor:
         self.name = UUID(uuid).getCommonName()
         self.handle = handle
         self.handle_short = "0x{:04x}".format(self.handle)
+        self.declaration_handle = "0x{:04x}".format(self.handle-1)
 
     def __str__(self):
         return f"Descriptor: {self.name} ({self.uuid}) - Handle: {self.handle}"
@@ -40,8 +41,9 @@ class BLEDescriptor:
         return {
             "uuid": self.uuid,
             "name": self.name,
-            "handle": self.handle,
-            "handle_short": self.handle_short
+            "value_handle": self.handle,
+            "value_handle_int": self.handle_short,
+            "declaration_handle": self.declaration_handle
         }
 
 
@@ -51,6 +53,7 @@ class BLECharacteristic:
         self.name = UUID(uuid).getCommonName()
         self.handle = handle
         self.handle_short = "0x{:04x}".format(self.handle)
+        self.declaration_handle = "0x{:04x}".format(self.handle-1)
 
         self.permissions = self._parse_permissions(permissions, BLE_PERMISSIONS)
 
@@ -66,7 +69,7 @@ class BLECharacteristic:
 
         self.appearance = ""
         if self.name == "Appearance":
-            self.value = BLE_APPEARANCE.get(int.from_bytes(value, byteorder="little"), ["", ""])[1]
+            self.value = f'{BLE_APPEARANCE.get(int.from_bytes(value, byteorder="little"), ["", ""])[1]} ({int.from_bytes(value, byteorder="little")})'
         
         if self.name == "Peripheral Privacy Flag":
             self.value = "Device Privacy is not in use (00)" if self.value == '00' else "Device Privacy is in use (1)"
@@ -97,8 +100,9 @@ class BLECharacteristic:
         return {
             "uuid": self.uuid,
             "name": self.name,
-            "handle": self.handle,
-            "handle_short": self.handle_short,
+            "value_handle_int": self.handle,
+            "value_handle": self.handle_short,
+            "declaration_handle": self.declaration_handle,
             "permissions": self.permissions,
             "descs": self.descs,
             "value": self.value,
@@ -171,14 +175,12 @@ class ScanDelegate(DefaultDelegate):
             devname = dev.getValueText(btle.ScanEntry.COMPLETE_LOCAL_NAME)
             if devname is None:
                 devname = dev.getValueText(btle.ScanEntry.SHORT_LOCAL_NAME)
-            #print(f"Device {dev.addr} [{devname}] ({dev.addrType}), Connect={dev.connectable}, RSSI={dev.rssi} dB")
             address = dev.addr if dev.addr else ""
             address_type = dev.addrType if dev.addrType else ""
             conn = str(dev.connectable) if str(dev.connectable) else ""
             rssi = dev.rssi if dev.rssi else ""
             devname = devname if devname else ""
 
-            #print(f"{dev.addr:<20} {devname:<30} {dev.addrType:<15} {str(dev.connectable):<15} {dev.rssi:<10}")
             print(f"{address:<20} {devname:<30} {address_type:<15} {conn:<15} {rssi:<10}")
 
 
@@ -361,8 +363,8 @@ for addr, device in scanner1.scanned_devices.items():
     if device.connectable:
         try:
             log(f"[*] Connecting to {device.address} ({device.name if hasattr(device, 'name') else 'Unknown'})...")
-            #scanner1.connectandread(addr)
+            scanner1.connectandread(addr)
         except:
             continue
 
-#scanner1.save_to_json("ble_data_3.json")
+scanner1.save_to_json("ble_data.json")

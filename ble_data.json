@@ -1,0 +1,199 @@
+{
+    "45:b4:6f:2a:47:01": {
+        "address": "45:b4:6f:2a:47:01",
+        "name": "",
+        "connectable": false,
+        "rssi": -77,
+        "services": []
+    },
+    "37:73:16:07:10:99": {
+        "address": "37:73:16:07:10:99",
+        "name": "MELK-OA20",
+        "connectable": true,
+        "rssi": -72,
+        "services": [
+            {
+                "uuid": "00001800-0000-1000-8000-00805f9b34fb",
+                "name": "Generic Access",
+                "characteristics": [
+                    {
+                        "uuid": "00002a00-0000-1000-8000-00805f9b34fb",
+                        "name": "Device Name",
+                        "handle_short": 3,
+                        "handle": "0x0003",
+                        "declaration_handle": "0x0002",
+                        "permissions": {
+                            "WRITE NO RESPONSE": false,
+                            "SIGNED WRITE COMMAND": false,
+                            "QUEUED WRITE": false,
+                            "BROADCAST": false,
+                            "READ": true,
+                            "WRITE": false,
+                            "NOTIFY": false,
+                            "INDICATE": false,
+                            "WRITABLE AUXILIARIES": false
+                        },
+                        "descs": null,
+                        "value": "MELK-OA20",
+                        "descriptors": []
+                    },
+                    {
+                        "uuid": "00002a01-0000-1000-8000-00805f9b34fb",
+                        "name": "Appearance",
+                        "handle_short": 5,
+                        "handle": "0x0005",
+                        "declaration_handle": "0x0004",
+                        "permissions": {
+                            "WRITE NO RESPONSE": false,
+                            "SIGNED WRITE COMMAND": false,
+                            "QUEUED WRITE": false,
+                            "BROADCAST": false,
+                            "READ": true,
+                            "WRITE": false,
+                            "NOTIFY": false,
+                            "INDICATE": false,
+                            "WRITABLE AUXILIARIES": false
+                        },
+                        "descs": null,
+                        "value": "Keyboard (HID Subtype) (961)",
+                        "descriptors": []
+                    },
+                    {
+                        "uuid": "00002a02-0000-1000-8000-00805f9b34fb",
+                        "name": "Peripheral Privacy Flag",
+                        "handle_short": 7,
+                        "handle": "0x0007",
+                        "declaration_handle": "0x0006",
+                        "permissions": {
+                            "WRITE NO RESPONSE": false,
+                            "SIGNED WRITE COMMAND": false,
+                            "QUEUED WRITE": false,
+                            "BROADCAST": false,
+                            "READ": true,
+                            "WRITE": false,
+                            "NOTIFY": false,
+                            "INDICATE": false,
+                            "WRITABLE AUXILIARIES": false
+                        },
+                        "descs": null,
+                        "value": "Device Privacy is in use (1)",
+                        "descriptors": []
+                    }
+                ]
+            },
+            {
+                "uuid": "00001801-0000-1000-8000-00805f9b34fb",
+                "name": "Generic Attribute",
+                "characteristics": [
+                    {
+                        "uuid": "00002a05-0000-1000-8000-00805f9b34fb",
+                        "name": "Service Changed",
+                        "handle_short": 10,
+                        "handle": "0x000a",
+                        "declaration_handle": "0x0009",
+                        "permissions": {
+                            "WRITE NO RESPONSE": false,
+                            "SIGNED WRITE COMMAND": false,
+                            "QUEUED WRITE": false,
+                            "BROADCAST": false,
+                            "READ": false,
+                            "WRITE": false,
+                            "NOTIFY": false,
+                            "INDICATE": true,
+                            "WRITABLE AUXILIARIES": false
+                        },
+                        "descs": null,
+                        "value": null,
+                        "descriptors": [
+                            {
+                                "uuid": "00002902-0000-1000-8000-00805f9b34fb",
+                                "name": "Client Characteristic Configuration",
+                                "handle": 11,
+                                "handle_short": "0x000b",
+                                "declaration_handle": "0x000a"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "uuid": "0000fff0-0000-1000-8000-00805f9b34fb",
+                "name": "fff0",
+                "characteristics": [
+                    {
+                        "uuid": "0000fff3-0000-1000-8000-00805f9b34fb",
+                        "name": "fff3",
+                        "handle_short": 14,
+                        "handle": "0x000e",
+                        "declaration_handle": "0x000d",
+                        "permissions": {
+                            "WRITE NO RESPONSE": true,
+                            "SIGNED WRITE COMMAND": false,
+                            "QUEUED WRITE": false,
+                            "BROADCAST": false,
+                            "READ": true,
+                            "WRITE": false,
+                            "NOTIFY": false,
+                            "INDICATE": false,
+                            "WRITABLE AUXILIARIES": false
+                        },
+                        "descs": null,
+                        "value": "53:53:47:33:31:4b:31:52:32:34:52:34:30:56:31:35:31:00:00:00",
+                        "descriptors": [
+                            {
+                                "uuid": "00002901-0000-1000-8000-00805f9b34fb",
+                                "name": "Characteristic User Description",
+                                "handle": 15,
+                                "handle_short": "0x000f",
+                                "declaration_handle": "0x000e"
+                            }
+                        ]
+                    },
+                    {
+                        "uuid": "0000fff4-0000-1000-8000-00805f9b34fb",
+                        "name": "fff4",
+                        "handle_short": 17,
+                        "handle": "0x0011",
+                        "declaration_handle": "0x0010",
+                        "permissions": {
+                            "WRITE NO RESPONSE": false,
+                            "SIGNED WRITE COMMAND": false,
+                            "QUEUED WRITE": false,
+                            "BROADCAST": false,
+                            "READ": true,
+                            "WRITE": true,
+                            "NOTIFY": true,
+                            "INDICATE": false,
+                            "WRITABLE AUXILIARIES": false
+                        },
+                        "descs": null,
+                        "value": "00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00",
+                        "descriptors": [
+                            {
+                                "uuid": "00002902-0000-1000-8000-00805f9b34fb",
+                                "name": "Client Characteristic Configuration",
+                                "handle": 18,
+                                "handle_short": "0x0012",
+                                "declaration_handle": "0x0011"
+                            },
+                            {
+                                "uuid": "00002901-0000-1000-8000-00805f9b34fb",
+                                "name": "Characteristic User Description",
+                                "handle": 19,
+                                "handle_short": "0x0013",
+                                "declaration_handle": "0x0012"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "4f:4c:b4:42:92:9c": {
+        "address": "4f:4c:b4:42:92:9c",
+        "name": "",
+        "connectable": false,
+        "rssi": -81,
+        "services": []
+    }
+}
