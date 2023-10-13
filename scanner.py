@@ -1,10 +1,11 @@
+import argparse
 import json
 import logging
 from threading import Thread
 from time import sleep
 from ble_appearance_dict import BLE_APPEARANCE
 from bluepy import btle
-from bluepy.btle import Peripheral, UUID, Scanner, DefaultDelegate, BTLEDisconnectError, ADDR_TYPE_PUBLIC, ADDR_TYPE_RANDOM
+from bluepy.btle import Peripheral, UUID, Scanner, DefaultDelegate, BTLEDisconnectError
 
 logging.basicConfig(format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO)
 
@@ -44,7 +45,8 @@ class BLEDescriptor:
         :return: String representation of the descriptor.
         :rtype: str
         """
-        return f"Descriptor: {self.name} ({self.uuid}) - Handle: {self.value_handle_int} ({self.value_handle} [{self.declaration_handle}])"
+        return (f"Descriptor: {self.name} ({self.uuid}) - Handle: {self.value_handle_int} ({self.value_handle} "
+                f"[{self.declaration_handle}])")
 
     def __repr__(self) -> str:
         """
@@ -75,7 +77,8 @@ class BLECharacteristic:
     """
     Represents a Bluetooth Low Energy (BLE) Characteristic.
     """
-    def __init__(self, uuid: str, handle: int, permissions: str, value: bytearray = None, special_service: bool = False) -> None:
+    def __init__(self, uuid: str, handle: int, permissions: str, value: bytearray = None,
+                 special_service: bool = False) -> None:
         """
         Initialize a BLECharacteristic object.
 
@@ -109,7 +112,8 @@ class BLECharacteristic:
 
         self.appearance = ""
         if self.name == "Appearance":
-            self.value = f'{BLE_APPEARANCE.get(int.from_bytes(value, byteorder="little"), ["", ""])[1]} ({int.from_bytes(value, byteorder="little")})'
+            self.value = (f'{BLE_APPEARANCE.get(int.from_bytes(value, byteorder="little"), ["", ""])[1]} '
+                          f'({int.from_bytes(value, byteorder="little")})')
 
         if self.name == "Peripheral Privacy Flag":
             self.value = "Device Privacy is not in use (00)" if self.value == '00' else "Device Privacy is in use (1)"
@@ -145,7 +149,8 @@ class BLECharacteristic:
         """
         desc_str = ', '.join([str(d) for d in self.descriptors])
         permissions_str = ', '.join([k for k, v in self.permissions.items() if v])
-        return f"Characteristic: {self.name} ({self.uuid}) - Handle: {self.value_handle_int} - Permissions: {permissions_str} - Value: {self.value} - Descriptors: [{desc_str}]"
+        return (f"Characteristic: {self.name} ({self.uuid}) - Handle: {self.value_handle_int} - "
+                f"Permissions: {permissions_str} - Value: {self.value} - Descriptors: [{desc_str}]")
 
     def __repr__(self) -> str:
         """
@@ -245,7 +250,7 @@ class BLEDevice:
     """
     Represents a Bluetooth Low Energy (BLE) Device.
     """
-    def __init__(self, address: str, rssi: str) -> None:
+    def __init__(self, address: str, addr_type: str, rssi: str) -> None:
         """
         Initialize a BLEDevice object.
 
@@ -257,6 +262,7 @@ class BLEDevice:
         self.address = address
         self.services = []
         self.connectable = False
+        self.addr_type = addr_type
         self.rssi = rssi
         self.name = ""
 
@@ -268,7 +274,8 @@ class BLEDevice:
         :rtype: str
         """
         service_str = '\n  '.join([str(s) for s in self.services])
-        return f"Device Address: {self.address}, Name: {getattr(self, 'name', 'Unknown')} ({self.connectable}) [{self.rssi}]\n  {service_str}"
+        return (f"Device Address: {self.address}, Name: {getattr(self, 'name', 'Unknown')} "
+                f"({self.connectable}) [{self.rssi}] [Type: {self.addr_type}]\n  {service_str}")
 
     def __repr__(self) -> str:
         """
@@ -419,9 +426,12 @@ class BLEScanner:
         print('-' * 100)
         devices = self.scanner.scan(timeout=duration)
         print("")
-        logger.info(f"[*] found {len(devices)} devices")
+        logger.info(f"[*] found {len(devices)} BLE devices - "
+                    f"{len([dev for dev in devices if dev.connectable])} connectable")
         for device in devices:
-            scanned_device = BLEDevice(address=device.addr, rssi=device.rssi)
+            scanned_device = BLEDevice(address=device.addr,
+                                       addr_type=device.addrType,
+                                       rssi=device.rssi)
             scanned_device.connectable = device.connectable
             device_name = device.getValueText(btle.ScanEntry.COMPLETE_LOCAL_NAME)
             if device_name is None:
@@ -449,10 +459,12 @@ class BLEScanner:
         p = Peripheral(iface=BT_INTERFACE_INDEX)
         try:
             # Implementation to enforce the timeout
-            thread = Thread(target=self._connect_peripheral, args=[p, device.address, addr_type])
+            thread = Thread(target=self._connect_peripheral,
+                            args=[p, device.address, addr_type])
             thread.start()
             thread.join(CONNECTION_TIMOUT)
             if thread.is_alive() or connection_error:
+                logger.error(f"[-] The device did not respond in the connection timeout of {CONNECTION_TIMOUT}")
                 raise Exception()
             logger.info(f"[*] Connected to {addr}.")
 
@@ -468,21 +480,25 @@ class BLEScanner:
                     char_value = chara.read() if chara.supportsRead() else None
                     is_special_service = (UUID(chara.uuid).getCommonName() != str(chara.uuid)
                                           and not len(UUID(chara.uuid).getCommonName()) == 4)
-                    characteristic = BLECharacteristic(uuid=chara.uuid, handle=chara.getHandle(),
-                                                       permissions=chara.propertiesToString(), value=char_value,
+                    characteristic = BLECharacteristic(uuid=chara.uuid,
+                                                       handle=chara.getHandle(),
+                                                       permissions=chara.propertiesToString(),
+                                                       value=char_value,
                                                        special_service=is_special_service)
                     service.add_characteristic(characteristic=characteristic)
 
                     if with_descriptors:
-                        logger.info(f"[*] reading descriptors of characteristic '{characteristic.name}' of service '{service.name}' on device '{addr}'")
+                        logger.info(f"[*] reading descriptors of characteristic '{characteristic.name}' of service "
+                                    f"'{service.name}' on device '{addr}'")
                         for desc in chara.getDescriptors():
-                            descriptor = BLEDescriptor(uuid=desc.uuid, handle=desc.handle)
+                            descriptor = BLEDescriptor(uuid=desc.uuid,
+                                                       handle=desc.handle)
                             characteristic.add_descriptor(descriptor=descriptor)
 
             logger.info(f"[*] successfully read all data from device {addr}")
             self.successful_scans += 1
             p.disconnect()
-            logger.info(f"[*] disconnected from '{addr}'")
+            logger.info(f"[*] disconnected from '{addr}'\n")
 
         except KeyboardInterrupt:
             logger.error(f"[-] KeyboardInterrupt - Skipping this device")
@@ -492,7 +508,7 @@ class BLEScanner:
             logger.error(f"[-] disconnecting...")
             p.disconnect()
 
-    def save_to_json(self, filename: str):
+    def save_to_json(self, filename: str) -> None:
         """
         Save the scanned BLE devices inside a BLEScanner to a JSON file.
 
@@ -508,7 +524,7 @@ class BLEScanner:
 
 # ---------------------------------------------------------------------------------------------------------------------#
 
-def scan_all_devices_and_read_all_fields(filename: str, with_descriptors: bool = False):
+def scan_all_devices_and_read_all_fields(filename: str, with_descriptors: bool = False) -> None:
     """
     Scan for all BLE devices in the vicinity and read all their fields.
 
@@ -522,7 +538,7 @@ def scan_all_devices_and_read_all_fields(filename: str, with_descriptors: bool =
     :param with_descriptors: Flag indicating if descriptors should be read. Default is False.
     :type with_descriptors: bool
     """
-    # ---------------- SCANNING ALL DEVICES ---------------- #
+    # ----------------- SCANNING ALL DEVICES ----------------- #
 
     logger.info("[*] Starting Script. Initializing Scanner Object")
     scanner1 = BLEScanner()
@@ -542,8 +558,10 @@ def scan_all_devices_and_read_all_fields(filename: str, with_descriptors: bool =
     for address, device in scanner1.scanned_devices.items():
         if device.connectable:
             try:
-                logger.info(f"[*] Connecting to {device.__repr__()}...")
-                scanner1.connect_and_read_all(addr=address, addr_type=device.addr_type, with_descriptors=with_descriptors)
+                logger.info(f"[*] Connecting to {device.address} ({device.name})...")
+                scanner1.connect_and_read_all(addr=address,
+                                              addr_type=device.addr_type,
+                                              with_descriptors=with_descriptors)
             except Exception:
                 continue
 
@@ -551,5 +569,40 @@ def scan_all_devices_and_read_all_fields(filename: str, with_descriptors: bool =
         scanner1.save_to_json(filename=filename)
 
 
-scan_all_devices_and_read_all_fields(filename="Test.json")
+def main() -> None:
+    """
+    Main function to provide CLI for the BLE scanner script.
+    """
+    parser = argparse.ArgumentParser(description="BLE Scanner: Scan and read all fields from nearby BLE devices.")
+
+    parser.add_argument("-f", "--filename", type=str, default="output.json",
+                        help="Name of the file to save the scanned data to. Default is 'output.json'.")
+
+    parser.add_argument("-d", "--descriptors", action="store_true",
+                        help="Flag to indicate if descriptors should be read. Default is False.")
+
+    parser.add_argument("-i", "--interface", type=int, default=0,
+                        help="Bluetooth interface index to use. Default is 0.")
+
+    parser.add_argument("-t", "--scan-time", type=int, default=5,
+                        help="Duration in seconds for the BLE scan. Default is 2 seconds.")
+
+    parser.add_argument("-c", "--connection-timeout", type=int, default=5,
+                        help="Timeout in seconds for the BLE connection. Default is 5 seconds.")
+
+    args = parser.parse_args()
+
+    global BT_INTERFACE_INDEX, BT_SCAN_TIME, CONNECTION_TIMOUT
+    BT_INTERFACE_INDEX = args.interface
+    BT_SCAN_TIME = args.scan_time
+    CONNECTION_TIMOUT = args.connection_timeout
+
+    args = parser.parse_args()
+
+    scan_all_devices_and_read_all_fields(filename=args.filename,
+                                         with_descriptors=args.descriptors)
+
+
+if __name__ == "__main__":
+    main()
 
